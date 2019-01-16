@@ -23,6 +23,17 @@ server.get('/api/cohorts', (req, res) => {
         });
 });
 
+server.get('/api/cohorts/:id/students', (req, res) => {
+    db('students')
+        .where({ cohort_id: req.params.id })
+        .then(students => {
+            res.status(200).json(students);
+        })
+        .catch(err => {
+            res.status(500).json({ err: 'Server error retrieving students from cohort' });
+        });
+});
+
 server.get('/api/cohorts/:id', (req, res) => {
     db('cohorts')
         .where({id: req.params.id})
