@@ -106,7 +106,68 @@ server.get('/api/students/:id', (req, res) => {
         .innerJoin('cohorts', 'cohorts.id', '=', 'students.cohort_id')
         .where('students.id', req.params.id)
         .then(student => {
-            res.status(200).json(student);
+            if(student.length !== 0) {
+                res.status(200).json(student);
+            } else {
+                res.status(404).json({ message: 'Student not found with that ID' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ err: 'Server error, try again' });
+        });
+});
+
+server.get('/api/students', (req, res) => {
+    db('students')
+        .then(students => {
+            res.status(200).json(students);
+        })
+        .catch(err => {
+            res.status(500).json({ error: 'Server error, try again' });
+        });
+});
+
+server.post('/api/students', (req, res) => {
+    if(req.body.name) {
+        db('students')
+            .insert(req.body)
+            .then(id => {
+                res.status(201).json(id);
+            })
+            .catch(err => {
+                res.status(409).json({ error: 'Name already exists, try again' });
+            });
+    } else {
+        res.status(412).json({ message: 'Please provide name and try again' });
+    }
+});
+
+server.put('/api/students/:id', (req, res) => {
+    if(req.body.name) {
+        db('students')
+            .where({ id: req.params.id })
+            .update(req.body)
+            .then(count => {
+                res.status(200).json(count);
+            })
+            .catch(err => {
+                res.status(500).json({ err: 'Server error, stry again' });
+            });
+    } else {
+        res.status(412).json({ message: 'Please provide a name for update' });
+    }
+});
+
+server.delete('/api/students/:id', (req, res) => {
+    db('students')
+        .where({ id: req.params.id })
+        .del()
+        .then(count => {
+            if(count !== 0) {
+                res.status(200).json(count);
+            } else {
+                res.status(404).json({ error: 'Student not found with that ID' });
+            }
         })
         .catch(err => {
             res.status(500).json({ err: 'Server error, try again' });
