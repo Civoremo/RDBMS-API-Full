@@ -96,4 +96,21 @@ server.delete('/api/cohorts/:id', (req, res) => {
         });
 })
 
+
+
+// students endpoints
+server.get('/api/students/:id', (req, res) => {
+    db('students')
+        .select('students.id', 'students.name', 'cohorts.name as cohort')
+        .from('students')
+        .innerJoin('cohorts', 'cohorts.id', '=', 'students.cohort_id')
+        .where('students.id', req.params.id)
+        .then(student => {
+            res.status(200).json(student);
+        })
+        .catch(err => {
+            res.status(500).json({ err: 'Server error, try again' });
+        });
+});
+
 server.listen(5001, () => console.log('server port 5001'));
