@@ -1,10 +1,16 @@
 const knex = require('knex');
 const knexConfig = require('./knexfile.js');
 const express = require('express');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const cors = require('cors');
 
 const server = express();
 
+server.use(helmet());
 server.use(express.json());
+server.use(morgan('short'));
+server.use(cors());
 const db = knex(knexConfig.development);
 
 server.get('/', (req, res) => {
@@ -12,7 +18,7 @@ server.get('/', (req, res) => {
 });
 
 
-// endpoints
+// cohorts endpoints
 server.get('/api/cohorts', (req, res) => {
     db('cohorts')
         .then(cohorts => {
@@ -53,8 +59,16 @@ server.post('/api/cohorts', (req, res) => {
     if(req.body.name) {
         db('cohorts')
             .insert(req.body)
-            .then(id => {
-                res.status(201).json(id);
+            .then(newCid => {
+                db('cohorts')
+                .where('cohorts.id', newCid[0])
+                .then(cohort => {
+                    res.status(200).json(cohort);
+                })
+                .catch(err => {
+                    res.status(409).json({ err: 'didnt return new cohort data' });
+                });
+                
             })
             .catch(err => {
                 res.status(409).json({ message: 'Name already exists, try another' });
